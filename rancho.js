@@ -10,9 +10,25 @@ app.post('/animais', (req, res) => {
   const INSERT_USER_QUERY = 'INSERT INTO animais (nome, sexo, origem, raca, data_nasc, situacao, ativo) VALUES (?, ?, ?, ?, ?, ?, ?)';
   connection.query(INSERT_USER_QUERY, [nome, sexo, origem, raca, data_nasc, situacao, ativo], (err, result) => {
     if (err) {
+      console.log(err);
       res.status(500).send('Erro ao cadastrar animal');
     } else {
-      res.status(201).send('Animal criado com sucesso');
+      //res.status(201).send('Animal criado com sucesso');
+      const animalInserido = {
+        id: result.insertId, // Supondo que o ID do animal seja gerado automaticamente no banco de dados
+        nome,
+        sexo,
+        origem,
+        raca,
+        data_nasc,
+        situacao,
+        ativo,
+      };
+
+      res.status(201).json({
+        message: 'Animal criado com sucesso',
+        animal: animalInserido, // Envie o objeto no corpo da resposta
+      });
     }
   });
 });
