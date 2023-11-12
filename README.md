@@ -4,21 +4,9 @@ Este é um sistema simples de gerenciamento de animais que permite criar, listar
 
 ## Configuração
 
-Antes de executar o aplicativo, certifique-se de ter Node.js e MySQL instalados no seu sistema. Você também deve criar um banco de dados MySQL chamado `rancho`. O script para criar a tabela ```animais```:
+Antes de executar o aplicativo, certifique-se de ter Node.js e MySQL instalados no seu sistema. Você também deve criar um banco de dados MySQL chamado `rancho`. O script para criar as tabelas:
 
-```
-CREATE TABLE `animais` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(50) DEFAULT NULL,
-  `sexo` char(2) DEFAULT NULL,
-  `origem` varchar(30) DEFAULT NULL,
-  `raca` varchar(30) DEFAULT NULL,
-  `data_nasc` date DEFAULT NULL,
-  `situacao` varchar(30) DEFAULT NULL,
-  `ativo` int DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-```
+[tables](sql/tables.sql)
 
 E configurar o arquivo `database.js` com suas credenciais de banco de dados.
 
