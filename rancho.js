@@ -45,7 +45,7 @@ app.get('/animais', (req, res) => {
   connection.query(SELECT_ANIMAL_QUERY, (err, results) => {
     if (err) {
       console.log(err);
-      res.status(500).send('Erro ao buscar animais');
+      res.status(500).send('Erro ao buscar animais.');
     } else {
       res.status(200).json(results);
     }
@@ -54,10 +54,10 @@ app.get('/animais', (req, res) => {
 
 // Rota para atualizar um animal
 app.put('/animais/:id_animal', (req, res) => {
-  const { nome, sexo, origem, raca, data_nascimento, situacao, ativo } = req.body;
+  const { nome, sexo, origem, raca, data_nascimento, situacao } = req.body;
   const { id_animal } = req.params;
-  const UPDATE_ANIMAL_QUERY = 'UPDATE tb_animais SET nome = ?, sexo = ?, origem = ?, raca = ?, data_nascimento = ?, situacao = ?, ativo = ? WHERE id_animal = ?';
-  connection.query(UPDATE_ANIMAL_QUERY, [nome, sexo, origem, raca, data_nascimento, situacao, ativo, id_animal], (err, result) => {
+  const UPDATE_ANIMAL_QUERY = 'UPDATE tb_animais SET nome = ?, sexo = ?, origem = ?, raca = ?, data_nascimento = ?, situacao = ? WHERE id_animal = ?';
+  connection.query(UPDATE_ANIMAL_QUERY, [nome, sexo, origem, raca, data_nascimento, situacao, id_animal], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erro ao atualizar animal.');
@@ -74,7 +74,7 @@ app.delete('/animais/:id_animal', (req, res) => {
     res.status(400).send('ID do animal inválido');
     return;
   }
-  const DELETE_ANIMAL_QUERY = 'DELETE FROM tb_animais WHERE id_animal = ?';
+  const DELETE_ANIMAL_QUERY = 'UPDATE tb_animais SET ativo = 0 WHERE id_animal = ?';
   connection.query(DELETE_ANIMAL_QUERY, [id_animal], (err, result) => {
     if (err) {
       console.log(err);
