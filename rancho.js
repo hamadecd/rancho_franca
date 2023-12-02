@@ -5,7 +5,6 @@ const connection = require('./database.js');
 
 // Rota para criar um novo animal
 app.post('/animais', (req, res) => {
-  const ativo = 1;
 
   const dadosAnimal = {
     nome: req.body.nome,
@@ -14,7 +13,8 @@ app.post('/animais', (req, res) => {
     raca: req.body.raca,
     data_nascimento: req.body.data_nascimento,
     situacao: req.body.situacao,
-    ativo,
+    mae_animal: req.body.mae_animal,
+    ativo: 1
   };
 
   const INSERT_ANIMAL_QUERY = 'INSERT INTO tb_animais SET ?';
@@ -54,10 +54,10 @@ app.get('/animais', (req, res) => {
 
 // Rota para atualizar um animal
 app.put('/animais/:id_animal', (req, res) => {
-  const { nome, sexo, origem, raca, data_nascimento, situacao } = req.body;
+  const { nome, sexo, origem, raca, data_nascimento, situacao, mae_animal } = req.body;
   const { id_animal } = req.params;
-  const UPDATE_ANIMAL_QUERY = 'UPDATE tb_animais SET nome = ?, sexo = ?, origem = ?, raca = ?, data_nascimento = ?, situacao = ? WHERE id_animal = ?';
-  connection.query(UPDATE_ANIMAL_QUERY, [nome, sexo, origem, raca, data_nascimento, situacao, id_animal], (err, result) => {
+  const UPDATE_ANIMAL_QUERY = 'UPDATE tb_animais SET nome = ?, sexo = ?, origem = ?, raca = ?, data_nascimento = ?, situacao = ?, mae_animal = ? WHERE id_animal = ?';
+  connection.query(UPDATE_ANIMAL_QUERY, [nome, sexo, origem, raca, data_nascimento, situacao, mae_animal, id_animal], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erro ao atualizar animal.');
@@ -131,9 +131,8 @@ app.get('/usuarios', (req, res) => {
 // Rota para atualizar um usuário
 app.put('/usuarios/:id_usuario', (req, res) => {
   const { nome, email, telefone, senha } = req.body;
-  const ativo = 1;
   const { id_usuario } = req.params;
-  const UPDATE_USER_QUERY = 'UPDATE tb_usuarios SET nome = ?, email = ?, telefone = ?, senha = ?, ativo = ? WHERE id_usuario = ?';
+  const UPDATE_USER_QUERY = 'UPDATE tb_usuarios SET nome = ?, email = ?, telefone = ?, senha = ? WHERE id_usuario = ?';
   connection.query(UPDATE_USER_QUERY, [nome, email, telefone, senha, ativo, id_usuario], (err, result) => {
     if (err) {
       console.log(err);
@@ -155,6 +154,158 @@ app.delete('/usuarios/:id_usuario', (req, res) => {
       res.status(500).send('Erro ao deletar o usuário!');
     } else {
       res.status(200).send('Usuário deletado com sucesso!');
+    }
+  });
+});
+
+// Rota para criar um novo controle de parto
+app.post('/controledeparto', (req, res) => {
+  const dadosControleParto = {
+    data_cio: req.body.data_cio,
+    data_inseminacao: req.body.data_inseminacao,
+    touro: req.body.touro,
+    protocolo: req.body.protocolo,
+    data_protocolo: req.body.data_protocolo,
+    id_animal_cp: req.body.animal_cp,
+    ativo : 1
+  }
+
+  const INSERT_CONTROLE_PARTO_QUERY = 'INSERT INTO tb_controle_de_partos SET ?';
+  connection.query(INSERT_CONTROLE_PARTO_QUERY, dadosControleParto, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erro ao cadastrar controle de parto!');
+    } else {
+      dadosControleParto.id = result.insertId;
+      res.status(201).json({
+        message: 'Controle de parto criado com sucesso!',
+        usuario: dadosControleParto,
+      });
+    }
+  });
+});
+
+// Rota para buscar todos os controles de parto
+app.get('/controledeparto', (req, res) => {
+  const SELECT_QUERY = 'SELECT * FROM tb_controle_de_partos WHERE ativo = 1';
+  connection.query(SELECT_QUERY, (err, results) => {
+    if (err) {
+      res.status(500).send('Erro ao buscar controle de partos!');
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+// Rota para atualizar um controle de parto
+app.put('/controledeparto/:id_controle_de_parto', (req, res) => {
+  const { data_cio, data_inseminacao, protocolo, data_protocolo, touro, id_animal_cp } = req.body;
+  const { id_controle_de_parto } = req.params;
+  const UPDATE_QUERY = 'UPDATE tb_controle_de_partos SET data_cio = ?, data_inseminacao = ?, protocolo = ?, data_protocolo = ?, touro = ?, id_animal_cp = ? WHERE id_controle_de_parto = ? AND ativo = 1';
+  console.log(UPDATE_QUERY);
+  connection.query(UPDATE_QUERY, [data_cio, data_inseminacao, protocolo, data_protocolo, touro, id_animal_cp, id_controle_de_parto], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erro ao atualizar.');
+    } else {
+      res.status(200).send('Atualizado com sucesso!');
+    }
+  });
+});
+
+// Rota para deletar um controle de parto
+app.delete('/controledeparto/:id_controle_de_parto', (req, res) => {
+  const { id_controle_de_parto } = req.params;
+  if (!id_controle_de_parto || isNaN(id_controle_de_parto)) {
+    res.status(400).send('ID inválido');
+    return;
+  }
+  const DELETE_QUERY = 'UPDATE tb_controle_de_partos SET ativo = 0 WHERE id_controle_de_parto = ?';
+  connection.query(DELETE_QUERY, [id_controle_de_parto], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erro ao deletar');
+    } else {
+      if (result.affectedRows === 0) {
+        res.status(404).send('Não encontrado');
+      } else {
+        // Exclusão bem-sucedida
+        res.status(200).send('Deletado com sucesso');
+      }
+    }
+  });
+});
+
+// Rota para criar uma nova produção animal
+app.post('/producaoanimal', (req, res) => {
+  const dadosProducaoAnimal = {
+    id_animal: req.body.id_animal,
+    data_producao: req.body.data_producao,
+    hora_producao: req.body.hora_producao,
+    quantidade: req.body.quantidade,
+    ativo : 1
+  }
+
+  const INSERT_PRODUCAO_ANIMAL_QUERY = 'INSERT INTO tb_producao_animal SET ?';
+  connection.query(INSERT_PRODUCAO_ANIMAL_QUERY, dadosProducaoAnimal, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erro ao cadastrar produção animal!');
+    } else {
+      dadosProducaoAnimal.id = result.insertId;
+      res.status(201).json({
+        message: 'Produção animal criado com sucesso!',
+        usuario: dadosProducaoAnimal,
+      });
+    }
+  });
+});
+
+// Rota para buscar todas as produções animal
+app.get('/producaoanimal', (req, res) => {
+  const SELECT_QUERY = 'SELECT * FROM tb_producao_animal WHERE ativo = 1';
+  connection.query(SELECT_QUERY, (err, results) => {
+    if (err) {
+      res.status(500).send('Erro ao buscar produção animal!');
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+// Rota para atualizar uma producao animal
+app.put('/producaoanimal/:id_producao_animal', (req, res) => {
+  const { data_producao, quantidade } = req.body;
+  const { id_producao_animal } = req.params;
+  const UPDATE_QUERY = 'UPDATE tb_producao_animal SET data_producao = ?, quantidade = ? WHERE id_producao_animal = ? AND ativo = 1';
+  connection.query(UPDATE_QUERY, [data_producao, quantidade, id_producao_animal], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erro ao atualizar.');
+    } else {
+      res.status(200).send('Atualizado com sucesso!');
+    }
+  });
+});
+
+// Rota para deletar uma produção animal
+app.delete('/producaoanimal/:id_producao_animal', (req, res) => {
+  const { id_producao_animal } = req.params;
+  if (!id_producao_animal || isNaN(id_producao_animal)) {
+    res.status(400).send('ID inválido');
+    return;
+  }
+  const DELETE_QUERY = 'UPDATE tb_producao_animal SET ativo = 0 WHERE id_producao_animal = ?';
+  connection.query(DELETE_QUERY, [id_producao_animal], (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Erro ao deletar');
+    } else {
+      if (result.affectedRows === 0) {
+        res.status(404).send('Não encontrado');
+      } else {
+        res.status(200).send('Deletado com sucesso');
+      }
     }
   });
 });
