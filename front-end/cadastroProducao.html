@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Produção Animal</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            position: fixed;
+            height: 100%;
+            width: 0;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            z-index: 1;
+        }
+
+        #sidebar a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        #sidebar a:hover {
+            color: #f1f1f1;
+        }
+
+        #content {
+            margin-left: 0;
+            transition: margin-left 0.5s;
+            padding: 16px;
+        }
+
+        #hamburger {
+            font-size: 30px;
+            cursor: pointer;
+            position: fixed;
+            z-index: 2;
+            left: 20px;
+            top: 20px;
+            color: #111;
+            display: block;
+        }
+
+        @media screen and (max-width: 768px) {
+            #sidebar {
+                width: 250px;
+            }
+
+            #content {
+                margin-left: 250px;
+            }
+
+            #hamburger {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Ícone Hamburger para Abrir o Menu em Dispositivos Móveis -->
+    <div id="hamburger" onclick="abrirMenu()">&#9776;</div>
+
+    <!-- Menu Lateral -->
+    <div id="sidebar">
+        <a href="#" class="close-btn" onclick="fecharMenu()">×</a>
+        <a href="cadastroAnimais.html">Cadastro de Animais</a>
+        <a href="animais.html">Animais Cadastrados</a>
+        <a href="cadastroProducao.html">Controle de Produção</a>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <main id="content">
+        <div class="card mt-4">
+            <div class="card-header">
+                Cadastro de Produção Animal
+            </div>
+            <div class="card-body">
+                <!-- Seu formulário de cadastro de produção aqui -->
+                <form id="formProducaoAnimal">
+                    <!-- Campo: Nome do Animal -->
+                    <div class="mb-3">
+                        <label for="id_animal" class="form-label">Nome do Animal</label>
+                        <select class="form-select" id="id_animal" name="id_animal">
+                            <!-- Opções de animais serão carregadas dinamicamente via JavaScript -->
+                        </select>
+                    </div>
+
+                    <!-- Campo: Data da Produção -->
+                    <div class="mb-3">
+                        <label for="data_producao" class="form-label">Data da Produção</label>
+                        <input type="date" class="form-control" id="data_producao" name="data_producao" required>
+                    </div>
+
+                    <!-- Campo: Quantidade Produzida -->
+                    <div class="mb-3">
+                        <label for="quantidade" class="form-label">Quantidade Produzida</label>
+                        <input type="number" class="form-control" id="quantidade" name="quantidade"
+                            placeholder="Informe a quantidade">
+                    </div>
+
+                    <!-- Botão de envio -->
+                    <button type="submit" class="btn btn-primary" onclick="cadastrarProducao()">Cadastrar
+                        Produção</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+
+<script> // ENVIAR DADOS PARA API
+    // Função para obter a hora atual no formato HH:MM:SS
+    function obterHoraAtual() {
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, '0');
+      const minutos = agora.getMinutes().toString().padStart(2, '0');
+      const segundos = agora.getSeconds().toString().padStart(2, '0');
+      return `${horas}:${minutos}:${segundos}`;
+    }
+  
+    // Função para cadastrar a produção
+    function cadastrarProducao() {
+      // Obter os valores dos campos
+      const id_animal = document.getElementById('id_animal').value;
+      const data_producao = document.getElementById('data_producao').value;
+      const quantidade = document.getElementById('quantidade').value;
+  
+      // Validar os valores 
+      if (!id_animal || !data_producao || !quantidade) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+      }
+  
+      // Obter a hora atual
+      const hora_producao = obterHoraAtual();
+  
+      // Objeto com os dados a serem enviados para a API
+      const dadosProducao = {
+        id_animal: id_animal,
+        data_producao: data_producao,
+        hora_producao: hora_producao, // Adicionando a hora atual
+        quantidade: quantidade,
+      };
+  
+      // Fazer a requisição AJAX para cadastrar a produção
+      $.ajax({
+        url: 'http://localhost:3000/producaoanimal', 
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(dadosProducao),
+        success: function (data) {
+          alert('Produção cadastrada com sucesso!');
+        },
+        error: function (error) {
+          console.error('Erro ao cadastrar produção:', error);
+          alert('Erro ao cadastrar produção. Por favor, tente novamente.');
+        }
+      });
+    }
+  
+    // Aplicar a máscara à entrada do usuário para o campo de quantidade
+    $(document).ready(function () {
+      $('#quantidade').inputmask('numeric', {
+        radixPoint: '.',
+        groupSeparator: ',',
+        digits: 2,
+        autoGroup: true,
+        prefix: '', // Sufixo (opcional)
+        rightAlign: false,
+      });
+    });
+  </script>
+  
+    <script>
+        // Funções para abrir e fechar o menu lateral
+        function abrirMenu() {
+            document.getElementById("sidebar").style.width = "250px";
+            document.getElementById("content").style.marginLeft = "250px";
+        }
+
+        function fecharMenu() {
+            document.getElementById("sidebar").style.width = "0";
+            document.getElementById("content").style.marginLeft = "0";
+        }
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            fecharMenu();
+            // Carregar nomes de animais dinamicamente via API
+            $.ajax({
+                url: 'http://localhost:3000/animais', // Atualize com o endereço correto da sua API
+                type: 'GET',
+                success: function (data) {
+                    preencherOpcoesAnimais(data);
+                },
+                error: function (error) {
+                    console.error('Erro ao obter nomes de animais:', error);
+                }
+            });
+
+            // Preencher a data atual no campo de data
+            preencherDataAtual();
+        });
+        
+        // Aplicar a máscara à entrada do usuário
+        $(document).ready(function () {
+            $('#quantidade').inputmask('numeric', {
+                radixPoint: '.',
+                groupSeparator: ',',
+                digits: 2,
+                autoGroup: true,
+                prefix: '', // Sufixo (opcional)
+                rightAlign: false,
+            });
+        });
+
+        // Função para preencher as opções do campo de seleção de animais
+        function preencherOpcoesAnimais(dadosAnimais) {
+            const selectAnimal = $('#id_animal');
+
+            // Limpar as opções antes de preencher com os novos dados
+            selectAnimal.empty();
+
+            // Preencher as opções com os nomes dos animais
+            dadosAnimais.forEach(function (animal) {
+                const option = `<option value="${animal.id_animal}">${animal.nome}</option>`;
+                selectAnimal.append(option);
+            });
+        }
+
+        // Função para preencher a data atual no campo de data
+        function preencherDataAtual() {
+            const dataAtual = new Date();
+            const dataFormatada = `${dataAtual.getFullYear()}-${(dataAtual.getMonth() + 1).toString().padStart(2, '0')}-${dataAtual.getDate().toString().padStart(2, '0')}`;
+            $('#data_producao').val(dataFormatada);
+        }
+
+
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+</body>
+
+</html>

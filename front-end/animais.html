@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animais Cadastrados</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+    }
+
+    #content {
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="card mt-4">
+      <div class="card-header">
+        Animais Cadastrados
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered" id="tabelaAnimais">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Sexo</th>
+                <th>Origem</th>
+                <th>Raça</th>
+                <th>Data de Nascimento</th>
+                <th>Situação</th>
+                <th>Ativo</th>
+                <th>Mãe</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Dados serão preenchidos dinamicamente via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Faz uma requisição AJAX para obter os dados dos animais
+      $.ajax({
+        url: 'http://localhost:3000/animais', // Atualize com o endereço correto da sua API
+        type: 'GET',
+        success: function (data) {
+          // Chama a função para preencher a tabela com os dados obtidos
+          preencherTabela(data);
+        },
+        error: function (error) {
+          console.error('Erro ao obter dados dos animais:', error);
+        }
+      });
+    });
+
+    // Função para preencher a tabela com os dados obtidos da API
+    function preencherTabela(dadosAnimais) {
+      const tbody = $('#tableBody');
+
+      // Limpa a tabela antes de preencher com os novos dados
+      tbody.empty();
+
+      // Preenche a tabela com os dados obtidos da API
+      dadosAnimais.forEach(function (animal) {
+        const row = `
+        <tr id="row-${animal.id_animal}">
+            <td>${animal.id_animal}</td>
+            <td>${animal.nome}</td>
+            <td>${animal.sexo}</td>
+            <td>${animal.origem}</td>
+            <td>${animal.raca || '-'}</td>
+            <td>${formatarDataBrasileira(animal.data_nascimento)}</td>
+            <td>${animal.situacao}</td>
+            <td>${animal.ativo ? 'Sim' : 'Não'}</td>
+            <td>${animal.nome_mae || '-'}</td>
+            <td>
+              <button class="btn btn-warning btn-sm" onclick="editarAnimal(${animal.id_animal})">
+                Editar
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="excluirAnimal(${animal.id_animal})">
+                Excluir
+              </button>
+                            </td>
+          </tr>
+        `;
+        tbody.append(row);
+      });
+    }
+
+    // Função para formatar a data no formato brasileiro (dd/mm/yyyy)
+    function formatarDataBrasileira(dataISO) {
+      const data = new Date(dataISO);
+      return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()}`;
+    }
+
+    // Função para deletar dados de produção animal
+    function excluirAnimal(id) {
+      $.ajax({
+        url: 'http://localhost:3000/animais/' + id, //endereço da API
+        type: 'delete',
+        success: function (dados) {
+          $(`#row-${id}`).remove();
+          alert("Cadastro excluído com sucesso!");
+        },
+        error: function (erro) {
+          console.error('Erro ao tentar deletar animal:', erro);
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>
