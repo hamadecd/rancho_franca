@@ -62,7 +62,12 @@ app.put('/animais/:id', (req, res) => {
       console.log(err);
       res.status(500).send('Erro ao atualizar animal.');
     } else {
-      res.status(200).send('Animal atualizado com sucesso!');
+      const animal = req.body;
+      animal.id = id_animal;
+      res.status(200).json({
+        message: "Atualizado com sucesso!",
+        animal: animal
+      })
     }
   });
 });
@@ -133,7 +138,7 @@ app.put('/usuarios/:id', (req, res) => {
   const { nome, email, telefone, senha } = req.body;
   const id_usuario = req.params.id;
   const UPDATE_QUERY = 'UPDATE tb_usuarios SET nome = ?, email = ?, telefone = ?, senha = ? WHERE id_usuario = ?';
-  connection.query(UPDATE_QUERY, [nome, email, telefone, senha, ativo, id_usuario], (err, result) => {
+  connection.query(UPDATE_QUERY, [nome, email, telefone, senha, id_usuario], (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send('Erro ao atualizar o usuário');

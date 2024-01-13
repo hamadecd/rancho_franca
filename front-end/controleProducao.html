@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Produção - Exibição</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+
+        #sidebar {
+            position: fixed;
+            height: 100%;
+            width: 0;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            z-index: 1;
+        }
+
+        #sidebar a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        #sidebar a:hover {
+            color: #f1f1f1;
+        }
+
+        #sidebar .close-btn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+
+        #content {
+            margin-left: 0;
+            transition: margin-left 0.5s;
+            padding: 16px;
+        }
+
+        #hamburger {
+            font-size: 30px;
+            cursor: pointer;
+            position: fixed;
+            z-index: 2;
+            left: 20px;
+            top: 20px;
+            color: #111;
+            display: none;
+        }
+
+        @media screen and (max-width: 768px) {
+            #sidebar {
+                width: 250px;
+            }
+
+            #content {
+                margin-left: 250px;
+            }
+
+            #hamburger {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Ícone Hamburger para Abrir o Menu -->
+    <div id="hamburger" onclick="abrirMenu()">&#9776;</div>
+
+    <!-- Menu Lateral -->
+    <div id="sidebar">
+        <a href="#" class="close-btn" onclick="fecharMenu()">×</a>
+        <a href="cadastroAnimais.html">Cadastro de Animais</a>
+        <a href="animais.html">Animais Cadastrados</a>
+        <a href="cadastroProducao.html">Controle de Produção</a>
+    </div>
+
+    <!-- Conteúdo -->
+    <div id="content">
+        <div class="container">
+            <div class="card mt-4">
+                <div class="card-header">
+                    Controle de Produção - Exibição
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="tabelaProducao">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Animal</th>
+                                    <th>Data de Produção</th>
+                                    <th>Hora de Produção</th>
+                                    <th>Quantidade</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Dados serão preenchidos dinamicamente via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4">
+                        <canvas id="graficoProducao"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adicione este modal no corpo da sua página -->
+    <div class="modal fade" id="modalEdicao" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Editar Produção</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulário de Edição -->
+                    <form id="formEdicao">
+                        <!-- Campos do formulário -->
+                        <div class="mb-3">
+                            <label for="campoNomeAnimalEdicao" class="form-label">Nome do Animal</label>
+                            <input type="text" class="form-control" id="campoNomeAnimalEdicao" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="campoDataProducaoEdicao" class="form-label">Data da Produção</label>
+                            <input type="date" class="form-control" id="campoDataProducaoEdicao">
+                        </div>
+                        <div class="mb-3">
+                            <label for="campoQuantidadeEdicao" class="form-label">Quantidade</label>
+                            <input type="number" class="form-control" id="campoQuantidadeEdicao">
+                        </div>
+                        <!-- Campo oculto para armazenar o ID da produção sendo editada -->
+                        <input type="hidden" id="campoIdProducaoEdicao">
+                        <!-- Botão de Envio do Formulário -->
+                        <button type="button" class="btn btn-primary" onclick="salvarEdicao()">Salvar Edição</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para obter dados da API
+        function obterDadosProducao() {
+            $.ajax({
+                url: 'http://localhost:3000/producaoanimal', // Atualize com o endereço correto da sua API
+                type: 'GET',
+                success: function (dados) {
+                    // Chama a função para criar o gráfico com os dados obtidos
+                    criarGrafico(dados);
+                },
+                error: function (erro) {
+                    console.error('Erro ao obter dados de produção:', erro);
+                }
+            });
+        }
+
+        // Função para criar o gráfico de barras
+        function criarGrafico(dados) {
+            var labels = dados.map(function (item) {
+                return item.nome_animal;
+            });
+
+            var dataset = {
+                label: 'Quantidade Produzida',
+                data: dados.map(function (item) {
+                    return item.quantidade;
+                }),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            };
+
+            var ctx = document.getElementById('graficoProducao').getContext('2d');
+            var grafico = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [dataset]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Executa a função para obter dados da API e criar o gráfico
+        obterDadosProducao();
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            fecharMenu();
+            // Faz uma requisição AJAX para obter os dados de produção
+            $.ajax({
+                url: 'http://localhost:3000/producaoanimal', // Atualize com o endereço correto da sua API
+                type: 'GET',
+                success: function (data) {
+                    // Chama a função para preencher a tabela com os dados obtidos
+                    preencherTabela(data);
+                },
+                error: function (error) {
+                    console.error('Erro ao obter dados de produção:', error);
+                }
+            });
+        });
+
+
+        // Função para preencher a tabela com os dados obtidos da API
+        function preencherTabela(dadosProducao) {
+            const tbody = $('#tableBody');
+
+            // Limpa a tabela antes de preencher com os novos dados
+            tbody.empty();
+
+            // Preenche a tabela com os dados obtidos da API
+            dadosProducao.forEach(function (producao) {
+                const row = `
+                <tr id="row-${producao.id_producao_animal}">
+            <td>${producao.id_producao_animal}</td>
+            <td>${producao.nome_animal}</td>
+            <td>${formatarDataBrasileira(producao.data_producao)}</td>
+            <td>${producao.hora_producao}</td>
+            <td>${formatarQuantidade(producao.quantidade)}</td>
+            <td>
+              <button class="btn btn-warning btn-sm" onclick="editarProducao(${producao.id_producao_animal})">
+                Editar
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deletarProducao(${producao.id_producao_animal})">
+                Excluir
+              </button>
+            </td>
+          </tr>
+        `;
+                tbody.append(row);
+            });
+        }
+
+        // Função para formatar a data no formato brasileiro (dd/mm/yyyy)
+        function formatarDataBrasileira(dataISO) {
+            const data = new Date(dataISO);
+            return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()}`;
+        }
+
+        // Função para formatar a quantidade no formato (1.000)
+        function formatarQuantidade(quantidade) {
+            return quantidade.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+    </script>
+
+    <script>
+        function abrirMenu() {
+            document.getElementById('sidebar').style.width = '250px';
+            document.getElementById('content').style.marginLeft = '250px';
+        }
+
+        function fecharMenu() {
+            document.getElementById('sidebar').style.width = '0';
+            document.getElementById('content').style.marginLeft = '0';
+        }
+
+        // Função para deletar dados de produção animal
+        function deletarProducao(id) {
+            $.ajax({
+                url: 'http://localhost:3000/producaoanimal/' + id, //endereço da API
+                type: 'delete',
+                success: function (dados) {
+                    $(`#row-${id}`).remove();
+                    alert("Cadastro excluído com sucesso!");
+                },
+                error: function (erro) {
+                    console.error('Erro ao tentar deletar produção:', erro);
+                }
+            });
+        }
+
+        // Função para editar uma produção
+        function editarProducao(idProducao) {
+
+            // Lógica para preencher um formulário de edição com os dados da produção
+            encontrarProducaoPorId(idProducao);
+        }
+
+        // Função auxiliar para encontrar uma produção por ID
+        function encontrarProducaoPorId(idProducao) {
+            // Fazer uma requisição AJAX para obter detalhes da produção por ID
+           
+            $.ajax({
+                
+                url: 'http://localhost:3000/producaoanimal/'+idProducao, // URL da API
+                type: 'GET',
+                success: function (data) {
+                    // Os detalhes da produção podem ser acessados em 'data'
+                    console.log('Detalhes da produção:', data);
+
+                    // Chame a função para preencher o formulário de edição com os dados da produção
+                    preencherFormularioEdicao(data);
+                },
+                error: function (error) {
+                    console.error('Erro ao obter detalhes da produção:', error);
+                }
+
+            });
+
+
+        }
+
+        // Função para preencher o formulário de edição com os dados da produção
+        function preencherFormularioEdicao(producao) {
+            // Use os dados da produção para preencher os campos do formulário de edição
+            $('#campoNomeAnimalEdicao').val(producao.nome_animal);
+            $('#campoDataProducaoEdicao').val(formatarDataBrasileira(producao.data_producao));
+            $('#campoQuantidadeEdicao').val(formatarQuantidade(producao.quantidade));
+            // Adicione outros campos conforme necessário
+
+            // Abra o modal de edição
+            $('#modalEdicao').modal('show');
+        }
+        
+        // Função para salvar a edição de uma produção
+        function salvarEdicao() {
+                // Obtenha os dados do formulário de edição
+                const id_producao_animal = $('#campoIdProducaoEdicao').val();
+                const data_producao = $('#campoDataProducaoEdicao').val();
+                const quantidade = $('#campoQuantidadeEdicao').val();
+
+                // Lógica para enviar os dados atualizados para a API
+                $.ajax({
+                    url: `http://localhost:3000/producaoanimal/${idProducao}`,
+                    type: 'PUT',
+                    data: {
+                        data_producao: dataProducao,
+                        quantidade: quantidade,
+                    },
+                    success: function () {
+                        // Feche o modal de edição
+                        $('#modalEdicao').modal('hide');
+
+                        // Atualize os dados na tabela (opcional, dependendo da sua arquitetura)
+                        // Se preferir, você pode recarregar a página ou fazer uma nova chamada à API para atualizar os dados
+
+                        console.log('Edição salva com sucesso!');
+                    },
+                    error: function (erro) {
+                        console.error('Erro ao salvar edição:', erro);
+                    }
+                });
+            }
+    </script>
+
+</body>
+
+</html>

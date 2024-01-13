@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Produção</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+    }
+
+    #content {
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Ícone Hamburger para Abrir o Menu em Dispositivos Móveis -->
+  <div id="hamburger" onclick="abrirMenu()">&#9776;</div>
+
+  <!-- Menu Lateral -->
+  <div id="sidebar">
+    <a href="#" class="close-btn" onclick="fecharMenu()">×</a>
+    <a href="cadastroAnimais.html">Cadastro de Animais</a>
+    <a href="animais.html">Animais Cadastrados</a>
+    <a href="cadastroProducao.html">Controle de Produção</a>
+  </div>
+
+  <div id="content">
+    <div class="card mt-4">
+      <div class="card-header">
+        Controle de Produção
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered" id="tabelaProducao">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome do Animal</th>
+                <th>Data de Produção</th>
+                <th>Hora de Produção</th>
+                <th>Quantidade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Dados serão preenchidos dinamicamente via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Modal de Edição -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Editar Produção</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <input type="hidden" id="editId">
+  
+            <div class="mb-3">
+              <label for="editDataProducao" class="form-label">Data de Produção</label>
+              <input type="date" class="form-control" id="editDataProducao" required>
+            </div>
+  
+            <div class="mb-3">
+              <label for="editHoraProducao" class="form-label">Hora de Produção</label>
+              <input type="time" class="form-control" id="editHoraProducao" required>
+            </div>
+  
+            <div class="mb-3">
+              <label for="editQuantidade" class="form-label">Quantidade</label>
+              <input type="number" class="form-control" id="editQuantidade" required>
+            </div>
+  
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+              <button type="button" class="btn btn-primary" onclick="salvarEdicao()">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Faz uma requisição AJAX para obter os dados de produção
+      $.ajax({
+        url: 'http://localhost:3000/producaoanimal', // Atualize com o endereço correto da sua API
+        type: 'GET',
+        success: function (data) {
+          // Chama a função para preencher a tabela com os dados obtidos
+          preencherTabela(data);
+        },
+        error: function (error) {
+          console.error('Erro ao obter dados de produção:', error);
+        }
+      });
+    });
+
+    // Função para preencher a tabela com os dados obtidos da API
+    function preencherTabela(dadosProducao) {
+      const tbody = $('#tableBody');
+
+      // Limpa a tabela antes de preencher com os novos dados
+      tbody.empty();
+
+      // Preenche a tabela com os dados obtidos da API
+      dadosProducao.forEach(function (producao) {
+        const row = `
+          <tr>
+            <td>${producao.id_producao_animal}</td>
+            <td>${producao.nome_animal}</td>
+            <td>${formatarDataBrasileira(producao.data_producao)}</td>
+            <td>${producao.hora_producao}</td>
+            <td>${producao.quantidade}</td>
+            <td>
+              <button class="btn btn-warning btn-sm" onclick="editarProducao(${producao.id_producao_animal})">
+                Editar
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="excluirProducao(${producao.id_producao_animal})">
+                Excluir
+              </button>
+            </td>
+          </tr>
+        `;
+        tbody.append(row);
+      });
+    }
+
+    // Função para formatar a data no formato brasileiro (dd/mm/yyyy)
+    function formatarDataBrasileira(dataISO) {
+      const data = new Date(dataISO);
+      return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()}`;
+    }
+
+    // Função para abrir o menu lateral
+    function abrirMenu() {
+      document.getElementById('sidebar').style.width = '250px';
+    }
+
+    // Função para fechar o menu lateral
+    function fecharMenu() {
+      document.getElementById('sidebar').style.width = '0';
+    }
+  </script>
+  <script>
+    // Função para abrir o formulário de edição ao clicar no botão Editar
+    function editarProducao(idProducao) {
+      // Faz uma requisição AJAX para obter os dados da produção específica
+      $.ajax({
+        url: 'http://localhost:3000/producaoanimal/'+idProducao, // Substitua pela sua URL correta
+        
+        type: 'GET',
+        success: function (producao) {
+          // Preenche o formulário de edição com os dados da produção
+          $('#editId').val(producao.id_producao_animal);
+          $('#editDataProducao').val(formatarDataBrasileira(producao.data_producao));
+          $('#editHoraProducao').val(producao.hora_producao);
+          $('#editQuantidade').val(producao.quantidade);
+  
+          // Exibe o modal de edição
+          $('#editModal').modal('show');
+        },
+        error: function (error) {
+          console.error('Erro ao obter dados da produção para edição:', error);
+        }
+      });
+    }
+  
+    // Função para enviar os dados editados para a API
+    function salvarEdicao() {
+      const idProducao = $('#editId').val();
+      const dataProducao = $('#editDataProducao').val();
+      const horaProducao = $('#editHoraProducao').val();
+      const quantidade = $('#editQuantidade').val();
+  
+      // Faz uma requisição AJAX para atualizar os dados
+      $.ajax({
+        url: `http://localhost:3000/producaoanimal/${idProducao}`, // Substitua pela sua URL correta
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          data_producao: dataProducao,
+          hora_producao: horaProducao,
+          quantidade: quantidade
+        }),
+        success: function () {
+          // Fecha o modal após a edição
+          $('#editModal').modal('hide');
+  
+          // Recarrega a tabela com os dados atualizados
+          carregarDadosProducao();
+        },
+        error: function (error) {
+          console.error('Erro ao salvar dados editados:', error);
+        }
+      });
+    }
+  </script>
+  
+</body>
+
+</html>
