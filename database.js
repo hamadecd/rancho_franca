@@ -3,10 +3,10 @@ const mysql = require('mysql');
 
 // Configure a conexão com o banco de dados
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '12345678',
-  database: 'rancho',
+  host: 'br888.hostgator.com.br',
+  user: 'hotel631_rancho',
+  password: ';pgCm0U5&in1',
+  database: 'hotel631_bd_rancho',
 });
 
 // Conecte ao banco de dados
