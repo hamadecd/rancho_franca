@@ -30,7 +30,7 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Dashboard</a>
+            <a class="nav-link active" aria-current="page" href="animais.html">Dashboard</a>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -87,7 +87,66 @@
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- Modal para editar -->
+  <div class="modal" id="editarAnimalModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Editar Animal</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="novoNome">Nome:</label>
+            <input type="text" class="form-control" id="novoNome">
+          </div>
+          <div class="mb-3">
+            <label for="novoSexo">Sexo:</label>
+            <input type="text" class="form-control" id="novoSexo">
+          </div>
+          <div class="mb-3">
+            <label for="novoOrigem">Origem:</label>
+            <input type="text" class="form-control" id="novoOrigem">
+          </div>
+          <div class="mb-3">
+            <label for="novoRaca">Raça:</label>
+            <input type="text" class="form-control" id="novoRaca">
+          </div>
+
+          <div class="mb-3">
+            <label for="novoData_nascimento">Data de Nascimento:</label>
+            <input type="date" class="form-control" id="novoData_nascimento">
+          </div>
+          <div class="mb-3">
+            <label for="novoSituacao" class="form-label">Situação</label>
+            <select class="form-select" id="novoSituacao">
+              <option value="Em Lactação">Em Lactação</option>
+              <option value="Vaca Seca">Vaca Seca</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="novoMae_animal">Mãe:</label>
+            <select class="form-select" id="novoMae_animal">
+              <!-- dados inseridos via ajax  -->
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="salvarEdicaoAnimal()">Salvar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <script>
     $(document).ready(function () {
       // Faz uma requisição AJAX para obter os dados dos animais
@@ -144,7 +203,74 @@
       return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()}`;
     }
 
-    // Função para deletar dados de produção animal
+    // Função para editar dados animal
+    let idAnimalEdicao;
+    function editarAnimal(id) {
+      idAnimalEdicao = id;
+      const nomeAtual = $(`#row-${id} td:eq(1)`).text();
+      const sexoAtual = $(`#row-${id} td:eq(2)`).text();
+      const origemAtual = $(`#row-${id} td:eq(3)`).text();
+      const racaAtual = $(`#row-${id} td:eq(4)`).text();
+      const dataNascimentoAtual = $(`#row-${id} td:eq(5)`).text().split('/').reverse().join('-');
+      const situacaoAtual = $(`#row-${id} td:eq(6)`).text();
+      const maeAtual = $(`#row-${id} td:eq(7)`).text();
+
+      $('#novoNome').val(nomeAtual);
+      $('#novoSexo').val(sexoAtual);
+      $('#novoOrigem').val(origemAtual);
+      $('#novoRaca').val(racaAtual);
+      $('#novoData_nascimento').val(dataNascimentoAtual);
+      $('#novoSituacao').val(situacaoAtual);
+      $('#novoMae_animal').val(maeAtual);
+
+      $('#editarAnimalModal').modal('show');
+    }
+
+    function salvarEdicaoAnimal() {
+      const novoNome = $('#novoNome').val();
+      const novoSexo = $('#novoSexo').val();
+      const novoOrigem = $('#novoOrigem').val();
+      const novoRaca = $('#novoRaca').val();
+      const novoData_nascimento = $('#novoData_nascimento').val();
+      const novoSituacao = $('#novoSituacao').val();
+      const novoMae_animal = $('#novoMae_animal').val();
+
+      const dadosAnimal = {
+        nome: novoNome,
+        sexo: novoSexo,
+        origem: novoOrigem,
+        raca: novoRaca,
+        data_nascimento: novoData_nascimento,
+        situacao: novoSituacao,
+        mae_animal: novoMae_animal
+      };
+
+      $.ajax({
+        url: `http://localhost:3000/animais/${idAnimalEdicao}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(dadosAnimal),
+        success: function (animalAtualizado) {
+          $(`#row-${idAnimalEdicao} td:eq(1)`).text(animalAtualizado.nome);
+          $(`#row-${idAnimalEdicao} td:eq(2)`).text(animalAtualizado.sexo);
+          $(`#row-${idAnimalEdicao} td:eq(3)`).text(animalAtualizado.origem);
+          $(`#row-${idAnimalEdicao} td:eq(4)`).text(animalAtualizado.raca || '-');
+          $(`#row-${idAnimalEdicao} td:eq(5)`).text(formatarDataBrasileira(animalAtualizado.data_nascimento));
+          $(`#row-${idAnimalEdicao} td:eq(6)`).text(animalAtualizado.situacao);
+          $(`#row-${idAnimalEdicao} td:eq(8)`).text(animalAtualizado.nome_mae || '-');
+
+
+          $('#editarAnimalModal').modal('hide');
+
+          alert("Animal editado com sucesso!");
+        },
+        error: function (erro) {
+          console.error('Erro ao tentar editar animal:', erro);
+        }
+      });
+    }
+
+    // Função para deletar dados animal
     function excluirAnimal(id) {
       $.ajax({
         url: 'http://localhost:3000/animais/' + id, //endereço da API
@@ -159,10 +285,12 @@
       });
     }
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+  <script src="static/js/index.js"></script>
+
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-  crossorigin="anonymous"></script>
-<script src="static/js/index.js"></script>
 
 </html>

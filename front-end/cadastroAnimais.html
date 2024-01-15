@@ -223,6 +223,7 @@
           alert('Animal cadastrado com sucesso!');
           // Limpa o formulário após o cadastro
           $('#formularioCadastro')[0].reset();
+          window.location.href = 'animais.html';
         },
         error: function (error) {
           console.error('Erro ao cadastrar animal:', error);

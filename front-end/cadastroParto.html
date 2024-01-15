@@ -130,7 +130,7 @@
       const form = document.getElementById('controlePartoForm');
       const formData = new FormData(form);
 
-      fetch('URL_DA_SUA_API', {
+      fetch('http://localhost:3000/animais', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
