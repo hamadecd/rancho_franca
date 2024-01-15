@@ -44,6 +44,7 @@ cd seu-repositorio
 Instale as dependências usando o npm:
 ```
 npm install
+npm install cors
 ```
 ## Uso
 Inicie o servidor:
