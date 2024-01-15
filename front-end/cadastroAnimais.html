@@ -215,7 +215,7 @@
 
       // Faz uma requisição AJAX para cadastrar o animal
       $.ajax({
-        url: 'http://152.67.45.246:3000/animais',
+        url: 'http://localhost:3000/animais',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(dadosAnimal),
@@ -236,7 +236,7 @@
     function carregarOpcoesMae() {
       // Faz uma requisição AJAX para obter a lista de mães do servidor
       $.ajax({
-        url: 'http://152.67.45.246/animais', // endpoint api
+        url: 'http://localhost:3000/animais', // endpoint api
         type: 'GET',
         dataType: 'json',
         success: function (maes) {
