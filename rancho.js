@@ -283,7 +283,7 @@ app.post('/producaoanimal', (req, res) => {
 
 // Rota para buscar todas as produções animal
 app.get('/producaoanimal', (req, res) => {
-  const SELECT_QUERY = 'SELECT * FROM tb_producao_animal WHERE ativo = 1';
+  const SELECT_QUERY = 'SELECT tb_producao_animal.*, tb_animais.nome FROM tb_producao_animal join tb_animais on tb_producao_animal.id_animal = tb_animais.id_animal WHERE tb_producao_animal.ativo = 1';
   connection.query(SELECT_QUERY, (err, results) => {
     if (err) {
       res.status(500).send('Erro ao buscar produção animal!');
@@ -326,6 +326,18 @@ app.delete('/producaoanimal/:id', (req, res) => {
       } else {
         res.status(200).send('Deletado com sucesso');
       }
+    }
+  });
+});
+
+app.get('/producaoanimal/:id', (req, res) => {
+  const id_producao_animal = req.params.id;
+  const SELECT_QUERY = 'SELECT * FROM tb_producao_animal WHERE ativo = 1 AND id_producao_animal = ?';
+  connection.query(SELECT_QUERY, [id_producao_animal], (err, results) => {
+    if (err) {
+      res.status(500).send('Erro ao buscar produção animal!');
+    } else {
+      res.status(200).json(results);
     }
   });
 });
