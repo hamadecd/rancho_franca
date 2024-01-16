@@ -122,7 +122,7 @@
         const row = `
           <tr>
             <td>${producao.id_producao_animal}</td>
-            <td>${producao.nome_animal}</td>
+            <td>${producao.nome}</td>
             <td>${formatarDataBrasileira(producao.data_producao)}</td>
             <td>${producao.hora_producao}</td>
             <td>${producao.quantidade}</td>
@@ -159,6 +159,7 @@
   <script>
     // Função para abrir o formulário de edição ao clicar no botão Editar
     function editarProducao(idProducao) {
+      
       // Faz uma requisição AJAX para obter os dados da produção específica
       $.ajax({
         url: 'http://localhost:3000/producaoanimal/'+idProducao, // Substitua pela sua URL correta
