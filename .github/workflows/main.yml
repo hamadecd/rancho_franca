@@ -1,0 +1,33 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches:
+      - main  # ajuste para o nome da sua branch principal, se necessário
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # você pode mudar para outra versão do Ubuntu, se preferir
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # este passo faz o checkout do código do repositório
+
+      - name: Install dependencies  # caso seu projeto tenha dependências a serem instaladas
+        run: npm install  # ajuste conforme necessário
+
+      - name: Build project  # se seu projeto precisar ser compilado ou construído
+        run: npm run build  # ajuste conforme necessário
+
+      - name: Copy files to Oracle Cloud
+        uses: appleboy/scp-action@master  # este passo copiará os arquivos para o servidor Oracle Cloud
+        with:
+          host: ${{ secrets.ORACLE_CLOUD_HOST }}  # você precisará definir essas variáveis de ambiente
+          username: ${{ secrets.ORACLE_CLOUD_USERNAME }}
+          password: ${{ secrets.ORACLE_CLOUD_PASSWORD }}
+          source: "."  # ajuste o caminho de origem conforme necessário
+          target: "/var/www/html"  # ajuste o caminho de destino conforme necessário
+          overwrite: true
+
+      - name: Restart Nginx
+        run: ssh ${{ secrets.ORACLE_CLOUD_USERNAME }}@${{ secrets.ORACLE_CLOUD_HOST }} 'sudo service nginx restart'  # este comando reiniciará o Nginx no servidor Oracle Cloud
